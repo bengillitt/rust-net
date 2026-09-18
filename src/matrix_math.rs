@@ -77,19 +77,32 @@ pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<Fl
 }
 
 pub fn transpose_mat(mat: FlatMatrix) -> Result<FlatMatrix, String> {
-    if mat.mat.len() % mat.rows != 0 {
-        return Err("Rows don't have the same length".to_string());
+    if mat.mat.len() % mat.rows != 0 || mat.rows == 0{
+        return Err("Invalid matrix dimensions".to_string());
     }
 
-    let cols = mat.mat.len() / mat.rows;
+    let cols = mat.cols();
+    let rows = mat.rows;
 
-    let mut t_mat = FlatMatrix{mat: vec![], rows: cols};
+    let mut t_mat = vec![0.0; mat.mat.len()];
 
-    for i in 0..cols {
-        for j in 0..mat.rows {
-            t_mat.mat.push(mat.mat[cols*j + i]);
+    const BLOCK_SIZE: usize = 32;
+
+for r_block in (0..rows).step_by(BLOCK_SIZE) {
+        for c_block in (0..cols).step_by(BLOCK_SIZE) {
+            
+            let r_end = (r_block + BLOCK_SIZE).min(rows);
+            let c_end = (c_block + BLOCK_SIZE).min(cols);
+
+            for r in r_block..r_end {
+                let in_row_offset = r * cols;
+                for c in c_block..c_end {
+                    // Transpose mapping: out[c, r] = in[r, c]
+                    t_mat[c * rows + r] = mat.mat[in_row_offset + c];
+                }
+            }
         }
     }
 
-    return Ok(t_mat);
+    Ok(FlatMatrix { mat: t_mat, rows: cols })
 }
