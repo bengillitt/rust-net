@@ -1,34 +1,5 @@
 use super::neural_network::layer::ActivationFunction;
 
-pub fn matrix_multiply_vector(mat_1: Vec<Vec<f32>>, mat_2: Vec<Vec<f32>>) -> Result<Vec<Vec<f32>>, String> {
-    if mat_1.len() == 0 || mat_2.len() == 0 {
-        return Ok(vec![]);
-    }
-
-    if mat_1[0].len() != mat_2.len() {
-        return Err("Matrix orders don't match".to_string());
-    }
-
-    let mut mat_out: Vec<Vec<f32>> = vec![];
-
-    for i in 0..mat_1.len() {
-        let mut row_out: Vec<f32> = vec![];
-        for j in 0..mat_2[0].len() {
-            let mut current: f32 = 0.0;
-
-            for k in 0..mat_1[0].len() {
-                current += mat_1[i][k] * mat_2[k][j];
-            }
-
-            row_out.push(current);
-        }
-
-        mat_out.push(row_out);
-    }
-
-    return Ok(mat_out);
-}
-
 #[derive(Debug, Clone)]
 pub struct FlatMatrix {
     pub mat: Vec<f32>,
@@ -39,6 +10,37 @@ impl FlatMatrix {
     pub fn cols(&self) -> usize {
         return self.mat.len() / self.rows;
     }
+}
+
+pub fn matrix_softmax(mat: &FlatMatrix) -> FlatMatrix {
+    let cols = mat.cols();
+
+    let mut out = vec![0.0; cols*mat.rows];
+
+    for i in 0..mat.rows {
+        let slice = &mat.mat[i*cols..(i+1)*cols];
+        let mut sum: f32 = 0.0;
+
+        let out_offset = i*cols;
+
+        let max = slice
+            .iter()
+            .copied()
+            .fold(f32::NEG_INFINITY, f32::max);
+
+        for j in 0..cols {
+            let exp = (slice[j] - max).exp();
+
+            out[out_offset + j] = exp;
+            sum += exp;
+        }
+
+        for j in 0..cols {
+            out[out_offset + j] /= sum;
+        }
+    }
+
+    return FlatMatrix{mat: out, rows: mat.rows};
 }
 
 pub fn matrix_activation(mat: &FlatMatrix, activation: &ActivationFunction) -> FlatMatrix {
