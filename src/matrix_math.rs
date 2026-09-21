@@ -1,3 +1,5 @@
+use super::neural_network::layer::ActivationFunction;
+
 pub fn matrix_multiply_vector(mat_1: Vec<Vec<f32>>, mat_2: Vec<Vec<f32>>) -> Result<Vec<Vec<f32>>, String> {
     if mat_1.len() == 0 || mat_2.len() == 0 {
         return Ok(vec![]);
@@ -37,6 +39,64 @@ impl FlatMatrix {
     pub fn cols(&self) -> usize {
         return self.mat.len() / self.rows;
     }
+}
+
+pub fn matrix_activation(mat: &FlatMatrix, activation: &ActivationFunction) -> FlatMatrix {
+    match activation {
+        ActivationFunction::Linear => mat.clone(),
+        ActivationFunction::ReLU => matrix_activate_relu(mat),
+        ActivationFunction::Sigmoid => matrix_activate_sigmoid(mat),
+        ActivationFunction::Tanh => matrix_activate_tanh(mat),
+    }
+}
+
+fn matrix_activate_relu(mat: &FlatMatrix) -> FlatMatrix {
+    let out = mat.mat.iter().map(|&z| if z > 0.0 { z } else { 0.0 } ).collect();
+
+    return FlatMatrix{mat: out, rows: mat.rows};
+}
+
+fn matrix_activate_sigmoid(mat: &FlatMatrix) -> FlatMatrix {
+    let out = mat.mat.iter().map(|&z| (1.0 / (1.0 + f64::exp(-(z as f64)))) as f32).collect();
+
+    return FlatMatrix{mat: out, rows: mat.rows};
+}
+
+fn matrix_activate_tanh(mat: &FlatMatrix) -> FlatMatrix {
+    let out = mat.mat.iter().map(|&z| z.tanh()).collect();
+
+    return FlatMatrix{mat: out, rows: mat.rows};
+}
+
+pub fn matrix_add_bias_flat(mat: &FlatMatrix, bias: &FlatMatrix) -> Result<FlatMatrix, String> {
+    if mat.cols() != bias.cols() || bias.rows != 1 {
+        return Err("Incorrect Matrix Order".to_string());
+    }
+
+    let cols = mat.cols();
+
+    let out = mat
+        .mat
+        .chunks_exact(cols)
+        .flat_map(|row| row.iter().zip(bias.mat.iter()).map(|(&x, &b)| x + b))
+        .collect();
+
+    return Ok(FlatMatrix{mat: out, rows: mat.rows});
+}
+
+pub fn matrix_add_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMatrix, String> {
+    if mat_1.rows != mat_2.rows || mat_1.cols() != mat_2.cols() {
+        return Err("Matrix orders don't match".to_string());
+    }
+
+    let mat = mat_1
+        .mat
+        .iter()
+        .zip(mat_2.mat.iter())
+        .map(|(&a, &b)| a + b)
+        .collect();
+
+    Ok(FlatMatrix { mat, rows: mat_1.rows })
 }
 
 #[inline(never)]

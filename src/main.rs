@@ -1,5 +1,5 @@
-mod neural_network;
-mod matrix_math;
+pub mod neural_network;
+pub mod matrix_math;
 
 use neural_network::Network;
 
