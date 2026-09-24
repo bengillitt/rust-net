@@ -102,7 +102,7 @@ pub fn matrix_add_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMat
 }
 
 #[inline(never)]
-pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMatrix, String> {
+pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix, transpose: bool) -> Result<FlatMatrix, String> {
     if mat_1.mat.len() % mat_1.rows != 0 || mat_2.mat.len() % mat_2.rows != 0 {
         return Err("Rows don't have same length".to_string());
     }
@@ -111,6 +111,14 @@ pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<Fl
 
     let mat_1_cols = mat_1.cols();
     let mat_2_cols = mat_2.cols();
+
+    if transpose {
+        if mat_1_cols != mat_2_cols {
+            return Err("Columns don't match".to_string());
+        }
+
+        
+    }
 
     // Check middle orders match
     if mat_1_cols != mat_2.rows {
@@ -150,7 +158,7 @@ pub fn transpose_mat(mat: FlatMatrix) -> Result<FlatMatrix, String> {
 
     const BLOCK_SIZE: usize = 32;
 
-for r_block in (0..rows).step_by(BLOCK_SIZE) {
+    for r_block in (0..rows).step_by(BLOCK_SIZE) {
         for c_block in (0..cols).step_by(BLOCK_SIZE) {
             
             let r_end = (r_block + BLOCK_SIZE).min(rows);

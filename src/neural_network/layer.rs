@@ -23,14 +23,14 @@ impl Layer {
         return Layer{
             in_features: in_features,
             out_features: out_features,
-            weights: FlatMatrix{mat: vec![0.0; in_features * out_features], rows: in_features},
+            weights: FlatMatrix{mat: vec![0.0; in_features * out_features], rows: out_features},
             bias: FlatMatrix{mat: vec![0.0; out_features], rows: 1},
             activation: activation
         };
     }
 
     pub fn pass(&self, inputs: &FlatMatrix) -> FlatMatrix {
-        matrix_math::matrix_activation(&matrix_math::matrix_add_bias_flat(&matrix_math::matrix_multiply_flat(inputs, &self.weights).unwrap(), &self.bias).unwrap(), &self.activation)
+        matrix_math::matrix_activation(&matrix_math::matrix_add_bias_flat(&matrix_math::matrix_multiply_flat(inputs, &self.weights, true).unwrap(), &self.bias).unwrap(), &self.activation)
     }
 
     pub fn in_features(&self) -> usize {
