@@ -103,8 +103,12 @@ pub fn matrix_add_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMat
 
 #[inline(never)]
 pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix, transpose: bool) -> Result<FlatMatrix, String> {
+    if mat_1.rows == 0 || mat_2.rows == 0 {
+        return Err("Matrix can't have zero rows".to_string());
+    }
+
     if mat_1.mat.len() % mat_1.rows != 0 || mat_2.mat.len() % mat_2.rows != 0 {
-        return Err("Rows don't have same length".to_string());
+        return Err("Invalid Matrix Dimensions".to_string());
     }
 
     // Rows = m, cols = n
@@ -117,7 +121,23 @@ pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix, transpose: b
             return Err("Columns don't match".to_string());
         }
 
-        
+        let mut out = vec![0.0; mat_1.rows * mat_2.rows];
+
+        for i in 0..mat_1.rows {
+            let out_offset = i * mat_2.rows;
+            let mat_1_offset = mat_1_cols * i;
+            for j in 0..mat_2.rows {
+                let mat_2_offset = mat_2_cols*j;
+                let mut total = 0.0;
+                for k in 0..mat_1_cols {
+                    total += mat_1.mat[mat_1_offset + k] * mat_2.mat[mat_2_offset + k];
+                }
+
+                out[out_offset + j] = total;
+            }
+        }
+
+        return Ok(FlatMatrix { mat: out, rows: mat_1.rows });
     }
 
     // Check middle orders match
