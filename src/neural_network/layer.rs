@@ -16,6 +16,7 @@ pub struct Layer {
     weights: FlatMatrix,
     bias: FlatMatrix,
     activation: ActivationFunction,
+    result: FlatMatrix,
 }
 
 impl Layer {
@@ -25,12 +26,15 @@ impl Layer {
             out_features: out_features,
             weights: FlatMatrix{mat: vec![0.0; in_features * out_features], rows: out_features},
             bias: FlatMatrix{mat: vec![0.0; out_features], rows: 1},
-            activation: activation
+            activation: activation,
+            result: FlatMatrix{mat: vec![], rows: 0},
         };
     }
 
-    pub fn pass(&self, inputs: &FlatMatrix) -> FlatMatrix {
-        matrix_math::matrix_activation(&matrix_math::matrix_add_bias_flat(&matrix_math::matrix_multiply_flat(inputs, &self.weights, true).unwrap(), &self.bias).unwrap(), &self.activation)
+    pub fn pass(&mut self, inputs: &FlatMatrix) -> FlatMatrix {
+        self.result = matrix_math::matrix_activation(&matrix_math::matrix_add_bias_flat(&matrix_math::matrix_multiply_flat(inputs, &self.weights, true).unwrap(), &self.bias).unwrap(), &self.activation);
+
+        return self.result.clone();
     }
 
     pub fn in_features(&self) -> usize {
@@ -51,6 +55,22 @@ impl Layer {
 
     pub fn activation(&self) -> &ActivationFunction {
         return &self.activation;
+    }
+
+    fn derivative(&self, a: f32) -> f32 {
+        match self.activation() {
+            ActivationFunction::Sigmoid => a * (1.0 - a),
+            ActivationFunction::Linear => 1.0,
+            ActivationFunction::ReLU => if a > 0.0 { 1.0 } else { 0.0 },
+            ActivationFunction::Tanh => 1.0 - a.powi(2),
+            _ => panic!("Unsupported activation function"),
+        }
+    }
+
+    pub fn activation_derivative(&self) -> FlatMatrix {
+        let out = self.result.mat.iter().map(|a| self.derivative(*a)).collect();
+
+        return FlatMatrix{mat: out, rows: self.result.rows};
     }
 
     pub fn set_weights(&mut self, new_weights: &FlatMatrix) {

@@ -14,7 +14,7 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn forward_pass(&self, inputs: FlatMatrix) -> FlatMatrix {
+    pub fn forward_pass(&mut self, inputs: FlatMatrix) -> FlatMatrix {
         let mut input = inputs;
 
         for i in 0..self.layers.len() {
@@ -28,17 +28,29 @@ impl Network {
         return input;
     }
 
-    pub fn back_prop(&self, inputs: FlatMatrix, expected_outputs: FlatMatrix) {
+    pub fn back_prop(&mut self, inputs: FlatMatrix, expected_outputs: FlatMatrix) {
         let outputs = self.forward_pass(inputs);
 
         let loss = self.calculate_loss(outputs, expected_outputs);
+
+        let next_delta = loss.unwrap();
 
         for i in self.layers.iter().rev() {
             
         }
     }
 
-    fn calculate_deltas(&self, layer: &mut Layer, ) {}
+    fn calculate_deltas(&self, layer: &Layer, next_delta: &FlatMatrix) -> FlatMatrix {
+        // delta_prev = delta*W hadamard product with the derivative of the activation function
+        // Hadamard Product - multiply every element in the matrix by the operand
+
+        let multiply = matrix_math::matrix_multiply_flat(next_delta, layer.weights(), false).unwrap();
+        let derivatives = layer.activation_derivative();
+
+        let out = matrix_math::matrix_hadamard_product(&multiply, &derivatives).unwrap();
+
+        return out;
+    }
 
     fn calculate_loss(&self, outputs: FlatMatrix, expected_outputs: FlatMatrix) -> Result<FlatMatrix, String> {
         if outputs.rows != expected_outputs.rows || outputs.cols() != expected_outputs.cols() {

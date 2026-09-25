@@ -12,6 +12,18 @@ impl FlatMatrix {
     }
 }
 
+pub fn matrix_hadamard_product(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMatrix, String> {
+    if (mat_1.mat.len() != mat_2.mat.len()) || mat_1.rows != mat_2.rows {
+        return Err("Matrix Dimensions don't match".to_string());
+    }
+
+    let out = mat_1.mat.iter().zip(&mat_2.mat).map(|(a, b)| a*b).collect();
+
+    return Ok(FlatMatrix { mat: out, rows: mat_1.rows });
+}
+
+
+
 pub fn matrix_softmax(mat: &FlatMatrix) -> FlatMatrix {
     let cols = mat.cols();
 
