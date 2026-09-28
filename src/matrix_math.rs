@@ -12,6 +12,16 @@ impl FlatMatrix {
     }
 }
 
+pub fn matrix_sum(mat: &FlatMatrix) -> f32 {
+    mat.mat.iter().sum()
+}
+
+pub fn matrix_scalar_multiply(mat_1: &FlatMatrix, scalar: f32) -> FlatMatrix {
+    let out = mat_1.mat.iter().map(|a| a * scalar).collect();
+
+    return FlatMatrix { mat: out, rows: mat_1.rows };
+}
+
 pub fn matrix_hadamard_product(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMatrix, String> {
     if (mat_1.mat.len() != mat_2.mat.len()) || mat_1.rows != mat_2.rows {
         return Err("Matrix Dimensions don't match".to_string());
@@ -113,6 +123,21 @@ pub fn matrix_add_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMat
     Ok(FlatMatrix { mat, rows: mat_1.rows })
 }
 
+pub fn matrix_subtract_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix) -> Result<FlatMatrix, String> {
+    if mat_1.rows != mat_2.rows || mat_1.cols() != mat_2.cols() {
+        return Err("Matrix orders don't match".to_string());
+    }
+
+    let mat = mat_1
+        .mat
+        .iter()
+        .zip(mat_2.mat.iter())
+        .map(|(&a, &b)| a - b)
+        .collect();
+
+    Ok(FlatMatrix { mat, rows: mat_1.rows })
+}
+
 #[inline(never)]
 pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix, transpose: bool) -> Result<FlatMatrix, String> {
     if mat_1.rows == 0 || mat_2.rows == 0 {
@@ -178,7 +203,7 @@ pub fn matrix_multiply_flat(mat_1: &FlatMatrix, mat_2: &FlatMatrix, transpose: b
     return Ok(mat_out);
 }
 
-pub fn transpose_mat(mat: FlatMatrix) -> Result<FlatMatrix, String> {
+pub fn transpose_mat(mat: &FlatMatrix) -> Result<FlatMatrix, String> {
     if mat.mat.len() % mat.rows != 0 || mat.rows == 0{
         return Err("Invalid matrix dimensions".to_string());
     }
