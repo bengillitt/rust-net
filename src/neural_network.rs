@@ -122,7 +122,7 @@ impl Network {
         return input;
     }
 
-    pub fn back_prop(&mut self, inputs: FlatMatrix, expected_outputs: FlatMatrix, learning_rate: f32) {
+    pub fn back_prop(&mut self, inputs: &FlatMatrix, expected_outputs: &FlatMatrix, learning_rate: f32) {
         let outputs = self.forward_pass(inputs.clone());
 
         let loss_matrix = self.calculate_loss(&outputs, &expected_outputs).unwrap();
