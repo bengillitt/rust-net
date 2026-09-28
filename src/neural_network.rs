@@ -156,14 +156,14 @@ impl Network {
         }
 
         if self.weight_decay.is_some() {
-            self.optimise();
+            self.optimise(learning_rate);
         }
     }
 
-    fn optimise(&mut self) {
+    fn optimise(&mut self, learning_rate: f32) {
         for i in 0..self.layers.len() {
             let weights = &self.layers[i].weights().clone();
-            self.layers[i].set_weights(&matrix_math::matrix_subtract_flat(weights, &matrix_math::matrix_scalar_multiply(weights, self.weight_decay.unwrap() as f32)).unwrap());
+            self.layers[i].set_weights(&matrix_math::matrix_scalar_multiply(weights, 1.0-(self.weight_decay.unwrap() as f32 * learning_rate)));
         }    
     }
 
