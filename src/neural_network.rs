@@ -100,7 +100,7 @@ impl Network {
             println!("Enter weight decay value");
             std::io::stdin().read_line(&mut weight_decay_string).expect("Failed to read line");
 
-            weight_decay = Some(inputs_string.trim().parse().expect("Please type in a number"));
+            weight_decay = Some(weight_decay_string.trim().parse().expect("Please type in a number"));
         } else {
             weight_decay = None;
         }
@@ -137,7 +137,7 @@ impl Network {
 
         let loss = matrix_math::matrix_sum(&loss_matrix) / divisor;
 
-        println!("Current Loss: {}", loss);
+        // println!("Current Loss: {}", loss);
 
         let loss_derivative = self.calculate_loss_derivative(&outputs, &expected_outputs);
 
@@ -186,10 +186,8 @@ impl Network {
 
         let out;
 
-        let divisor: f32 = 1.0 / outputs.cols() as f32;
-
         if self.softmax_enabled {
-            out = outputs.mat.iter().zip(&expected_outputs.mat).map(|(a, b)| (a - b) * divisor).collect();
+            out = outputs.mat.iter().zip(&expected_outputs.mat).map(|(a, b)| (a - b)).collect();
         } else {
             out = outputs.mat.iter().zip(&expected_outputs.mat).map(|(a, b)| 2.0*(a - b)).collect();
         }
